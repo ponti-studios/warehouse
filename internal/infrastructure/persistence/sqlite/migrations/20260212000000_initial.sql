@@ -55,6 +55,65 @@ CREATE TABLE IF NOT EXISTS finance_expenses (
     annual_cost REAL
 );
 
+-- Calendar events (added to fulfill migration dependencies)
+CREATE TABLE IF NOT EXISTS calendar_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uid TEXT,
+    calendar_id INTEGER,
+    calendar_name TEXT,
+    summary TEXT,
+    description TEXT,
+    location TEXT,
+    start TEXT,
+    end TEXT,
+    start_time TEXT,
+    end_time TEXT,
+    is_all_day INTEGER DEFAULT 0,
+    is_recurring INTEGER DEFAULT 0,
+    recurrence_rule TEXT,
+    status TEXT DEFAULT 'confirmed',
+    organizer TEXT,
+    attendees TEXT,
+    ical_uid TEXT,
+    category_id INTEGER,
+    event_type_id INTEGER,
+    extracted_detail TEXT,
+    extracted_person TEXT,
+    confidence_score REAL,
+    format_class TEXT,
+    duration_minutes INTEGER,
+    created TEXT,
+    last_modified TEXT,
+    dtstamp TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TEXT
+);
+
+-- Calendar categories (Legacy support)
+CREATE TABLE IF NOT EXISTS calendar_event_categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    emoji TEXT,
+    display_order INTEGER,
+    is_active INTEGER,
+    created_at TEXT
+);
+
+-- Calendar types (Legacy support)
+CREATE TABLE IF NOT EXISTS calendar_event_types (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category_id INTEGER,
+    name TEXT NOT NULL,
+    description TEXT,
+    emoji TEXT,
+    is_active INTEGER,
+    display_order INTEGER,
+    frequency_score INTEGER,
+    created_at TEXT
+);
+
 -- Helpful indexes
 CREATE INDEX IF NOT EXISTS idx_finance_transactions_date ON finance_transactions(date);
 CREATE INDEX IF NOT EXISTS idx_finance_transactions_account ON finance_transactions(account);

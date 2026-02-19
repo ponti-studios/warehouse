@@ -76,6 +76,7 @@ INSERT OR IGNORE INTO tracking_types (id, name, description, icon, color, is_act
     ('tracking_type_substance', 'substance', 'Substance use monitoring and tracking', '🚬', '#ECC94B', TRUE);
 
 -- Create triggers to keep entities table in sync
+-- +goose StatementBegin
 CREATE TRIGGER IF NOT EXISTS tracking_entries_insert AFTER INSERT ON tracking_entries
 BEGIN
     INSERT OR REPLACE INTO entities (id, domain, entity_type, entity_subtype, title, status, created_at, updated_at, metadata)
@@ -105,7 +106,9 @@ BEGIN
         NEW.type || ' tracking'
     );
 END;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE TRIGGER IF NOT EXISTS tracking_entries_update AFTER UPDATE ON tracking_entries
 BEGIN
     UPDATE entities
@@ -127,12 +130,15 @@ BEGIN
         tags = NEW.type || ' tracking'
     WHERE entity_id = NEW.id;
 END;
+-- +goose StatementEnd
 
+-- +goose StatementBegin
 CREATE TRIGGER IF NOT EXISTS tracking_entries_delete AFTER DELETE ON tracking_entries
 BEGIN
     DELETE FROM entities WHERE id = OLD.id;
     DELETE FROM search_index WHERE entity_id = OLD.id;
 END;
+-- +goose StatementEnd
 
 -- Log the migration completion
 INSERT INTO activity_log (id, action, domain, description, metadata) VALUES (

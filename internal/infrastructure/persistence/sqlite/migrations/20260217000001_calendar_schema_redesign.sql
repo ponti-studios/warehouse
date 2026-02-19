@@ -1,4 +1,5 @@
 -- +goose Up
+-- +goose NO TRANSACTION
 -- Calendar Schema Redesign - Full Migration
 -- Description: Creates new normalized calendar tables with proper constraints and migrates 5,000+ events
 -- Risk Level: HIGH - touches 5,000+ events
@@ -48,6 +49,7 @@ CREATE TABLE calendars (
     source TEXT NOT NULL DEFAULT 'unknown',
     source_id TEXT,
     color TEXT,
+    description TEXT,
     is_active INTEGER DEFAULT 1,
     last_synced_at TEXT,
     created_at TEXT DEFAULT (datetime('now')),

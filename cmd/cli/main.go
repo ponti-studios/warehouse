@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
-	"github.com/urfave/cli/v2"
+	"github.com/charmbracelet/fang"
+	"github.com/spf13/cobra"
 
 	"gogogo/cmd/cli/commands/browser"
 	"gogogo/cmd/cli/commands/finance"
@@ -17,172 +19,229 @@ import (
 )
 
 func main() {
-	app := &cli.App{
-		Name:  "gogogo",
-		Usage: "CLI utilities and tools",
-		Commands: []*cli.Command{
-			{
-				Name:   "browser",
-				Usage:  "Browser automation tools",
-				Action: func(c *cli.Context) error { return browser.Run() },
-			},
-			{
-				Name:  "flatten",
-				Usage: "Flatten directory structure",
-				Action: func(c *cli.Context) error {
-					return flatten.Run()
-				},
-			},
-			{
-				Name:  "typingmind",
-				Usage: "Convert TypingMind chat data",
-				Action: func(c *cli.Context) error {
-					return typingmind.Run()
-				},
-			},
-			{
-				Name:   "finance",
-				Usage:  "Finance and budget calculator",
-				Action: func(c *cli.Context) error { return finance.RunCLI() },
-			},
-			{
-				Name:   "notes",
-				Usage:  "Parse markdown files for notes",
-				Action: func(c *cli.Context) error { return notes.Run() },
-			},
-			{
-				Name:   "random",
-				Usage:  "Go example code snippets",
-				Action: func(c *cli.Context) error { return random.Run() },
-			},
-			{
-				Name:   "server",
-				Usage:  "Start GraphQL server",
-				Action: func(c *cli.Context) error { return server.Run() },
-			},
-			{
-				Name:        "import",
-				Usage:       "Import data from various sources",
-				Subcommands: importSubcommands(),
-			},
-		},
+	rootCmd := &cobra.Command{
+		Use:   "gogogo",
+		Short: "CLI utilities and tools",
 	}
 
-	if err := app.Run(os.Args); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+	rootCmd.AddCommand(browserCmd())
+	rootCmd.AddCommand(flattenCmd())
+	rootCmd.AddCommand(typingmindCmd())
+	rootCmd.AddCommand(finance.Command())
+	rootCmd.AddCommand(notesCmd())
+	rootCmd.AddCommand(randomCmd())
+	rootCmd.AddCommand(serverCmd())
+	rootCmd.AddCommand(importCmd())
+
+	if err := fang.Execute(context.Background(), rootCmd); err != nil {
 		os.Exit(1)
 	}
 }
 
-func importSubcommands() []*cli.Command {
-	return []*cli.Command{
-		{
-			Name:  "amazon",
-			Usage: "Import Amazon orders",
-			Action: func(c *cli.Context) error {
-				fmt.Println("Usage: gogogo import amazon <args>")
-				return nil
-			},
+func browserCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "browser",
+		Short: "Browser automation tools",
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := browser.Run(); err != nil {
+				fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err)
+				os.Exit(1)
+			}
 		},
-		{
-			Name:  "apple",
-			Usage: "Import Apple receipts",
-			Action: func(c *cli.Context) error {
-				fmt.Println("Usage: gogogo import apple <args>")
-				return nil
-			},
+	}
+}
+
+func flattenCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "flatten",
+		Short: "Flatten directory structure",
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := flatten.Run(); err != nil {
+				fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err)
+				os.Exit(1)
+			}
 		},
-		{
-			Name:  "health",
-			Usage: "Import health data",
-			Action: func(c *cli.Context) error {
-				fmt.Println("Usage: gogogo import health <args>")
-				return nil
-			},
+	}
+}
+
+func typingmindCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "typingmind",
+		Short: "Convert TypingMind chat data",
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := typingmind.Run(); err != nil {
+				fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err)
+				os.Exit(1)
+			}
 		},
-		{
-			Name:  "music",
-			Usage: "Import music data (Spotify, Apple Music)",
-			Subcommands: []*cli.Command{
-				{
-					Name:  "spotify",
-					Usage: "Import Spotify data",
-					Flags: []cli.Flag{
-						&cli.StringFlag{
-							Name:  "db",
-							Usage: "Path to SQLite database",
-						},
-						&cli.StringFlag{
-							Name:  "source",
-							Usage: "Source directory containing Spotify export (e.g., .data/spotify)",
-						},
-						&cli.BoolFlag{
-							Name:  "dry-run",
-							Usage: "Validate without importing",
-						},
-						&cli.BoolFlag{
-							Name:  "force",
-							Usage: "Skip duplicate checking",
-						},
-					},
-					Action: func(c *cli.Context) error {
-						return music.HandleSpotifyImport(
-							c.Context,
-							c.String("db"),
-							c.String("source"),
-							c.Bool("dry-run"),
-							c.Bool("force"),
-						)
-					},
-				},
-				{
-					Name:  "apple",
-					Usage: "Import Apple Music data",
-					Flags: []cli.Flag{
-						&cli.StringFlag{
-							Name:  "db",
-							Usage: "Path to SQLite database",
-						},
-						&cli.StringFlag{
-							Name:  "source",
-							Usage: "Source directory containing Apple Music export",
-						},
-						&cli.BoolFlag{
-							Name:  "dry-run",
-							Usage: "Validate without importing",
-						},
-						&cli.BoolFlag{
-							Name:  "force",
-							Usage: "Skip duplicate checking",
-						},
-					},
-					Action: func(c *cli.Context) error {
-						return music.HandleAppleMusicImport(
-							c.Context,
-							c.String("db"),
-							c.String("source"),
-							c.Bool("dry-run"),
-							c.Bool("force"),
-						)
-					},
-				},
-			},
+	}
+}
+
+func notesCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "notes",
+		Short: "Parse markdown files for notes",
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := notes.Run(); err != nil {
+				fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err)
+				os.Exit(1)
+			}
 		},
-		{
-			Name:  "tracking",
-			Usage: "Import tracking data",
-			Action: func(c *cli.Context) error {
-				fmt.Println("Usage: gogogo import tracking <args>")
-				return nil
-			},
+	}
+}
+
+func randomCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "random",
+		Short: "Go example code snippets",
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := random.Run(); err != nil {
+				fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err)
+				os.Exit(1)
+			}
 		},
-		{
-			Name:  "social",
-			Usage: "Import social media data",
-			Action: func(c *cli.Context) error {
-				fmt.Println("Usage: gogogo import social <args>")
-				return nil
-			},
+	}
+}
+
+func serverCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "server",
+		Short: "Start REST API server",
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := server.Run(); err != nil {
+				fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err)
+				os.Exit(1)
+			}
+		},
+	}
+}
+
+func importCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "import",
+		Short: "Import data from various sources",
+	}
+
+	cmd.AddCommand(importAmazonCmd())
+	cmd.AddCommand(importAppleCmd())
+	cmd.AddCommand(importHealthCmd())
+	cmd.AddCommand(importMusicCmd())
+	cmd.AddCommand(importTrackingCmd())
+	cmd.AddCommand(importSocialCmd())
+
+	return cmd
+}
+
+func importAmazonCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "amazon",
+		Short: "Import Amazon orders",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("Usage: gogogo import amazon <args>")
+		},
+	}
+}
+
+func importAppleCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "apple",
+		Short: "Import Apple receipts",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("Usage: gogogo import apple <args>")
+		},
+	}
+}
+
+func importHealthCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "health",
+		Short: "Import health data",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("Usage: gogogo import health <args>")
+		},
+	}
+}
+
+func importMusicCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "music",
+		Short: "Import music data (Spotify, Apple Music)",
+	}
+
+	cmd.AddCommand(importSpotifyCmd())
+	cmd.AddCommand(importAppleMusicCmd())
+
+	return cmd
+}
+
+func importSpotifyCmd() *cobra.Command {
+	var db, source string
+	var dryRun, force bool
+
+	cmd := &cobra.Command{
+		Use:   "spotify",
+		Short: "Import Spotify data",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return music.HandleSpotifyImport(
+				context.Background(),
+				db,
+				source,
+				dryRun,
+				force,
+			)
+		},
+	}
+
+	cmd.Flags().StringVar(&db, "db", "", "Path to SQLite database")
+	cmd.Flags().StringVar(&source, "source", "", "Source directory containing Spotify export")
+	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Validate without importing")
+	cmd.Flags().BoolVar(&force, "force", false, "Skip duplicate checking")
+
+	return cmd
+}
+
+func importAppleMusicCmd() *cobra.Command {
+	var db, source string
+	var dryRun, force bool
+
+	cmd := &cobra.Command{
+		Use:   "apple",
+		Short: "Import Apple Music data",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return music.HandleAppleMusicImport(
+				context.Background(),
+				db,
+				source,
+				dryRun,
+				force,
+			)
+		},
+	}
+
+	cmd.Flags().StringVar(&db, "db", "", "Path to SQLite database")
+	cmd.Flags().StringVar(&source, "source", "", "Source directory containing Apple Music export")
+	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Validate without importing")
+	cmd.Flags().BoolVar(&force, "force", false, "Skip duplicate checking")
+
+	return cmd
+}
+
+func importTrackingCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "tracking",
+		Short: "Import tracking data",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("Usage: gogogo import tracking <args>")
+		},
+	}
+}
+
+func importSocialCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "social",
+		Short: "Import social media data",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("Usage: gogogo import social <args>")
 		},
 	}
 }

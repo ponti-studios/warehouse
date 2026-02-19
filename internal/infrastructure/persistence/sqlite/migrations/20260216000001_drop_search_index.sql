@@ -5,6 +5,11 @@
 
 DROP TABLE IF EXISTS search_index;
 
+-- Drop triggers that reference the search_index table
+DROP TRIGGER IF EXISTS tracking_entries_insert;
+DROP TRIGGER IF EXISTS tracking_entries_update;
+DROP TRIGGER IF EXISTS tracking_entries_delete;
+
 -- +goose Down
 -- Migration: Recreate search_index table
 -- Description: Recreates the search_index table (non-FTS version)
