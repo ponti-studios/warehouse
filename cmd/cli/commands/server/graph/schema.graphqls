@@ -1,0 +1,102 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+scalar Upload
+
+enum ExpenseCadence {
+  WEEKLY
+  BI_WEEKLY
+  MONTHLY
+  BI_MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+type Expense {
+  name: String!
+  amount: Float!
+  cadence: ExpenseCadence!
+}
+
+input ExpenseInput {
+  name: String!
+  amount: Float!
+  cadence: ExpenseCadence!
+}
+
+enum GoalType {
+  ASSET
+  SAVINGS
+}
+
+type Goal {
+  name: String!
+  amount: Float!
+  type: GoalType!
+}
+
+input GoalInput {
+  name: String!
+  amount: Float!
+}
+
+type Budget {
+  taxRate: Float!
+  expenses: [Expense!]!
+  years: Int!
+  goals: [Goal!]!
+}
+
+input BudgetInput {
+  taxRate: Float!
+  expenses: [ExpenseInput!]!
+  years: Int!
+  goals: [GoalInput!]!
+}
+
+type GoalCalculationOutput {
+  annualPreTaxIncome: Float!
+  monthlyPreTaxIncome: Float!
+}
+
+type Todo {
+  id: ID!
+  text: String!
+  done: Boolean!
+  user: User!
+}
+
+type User {
+  id: ID!
+  name: String!
+}
+
+input NewTodo {
+  text: String!
+  userId: String!
+}
+
+input ProcessICSInput {
+  input: Upload!
+}
+
+type Event {
+  start: String!
+  end: String!
+  description: String
+  location: String
+  summary: String
+}
+
+type Query {
+  todos: [Todo!]!
+  expenses: [Expense!]!
+  goals: [Goal!]!
+  budget: Budget!
+}
+
+type Mutation {
+  processICS(input: ProcessICSInput): [Event!]!
+  createTodo(input: NewTodo!): Todo!
+  calculateGoal(input: BudgetInput!): GoalCalculationOutput!
+}

@@ -1,0 +1,17 @@
+# Config file for `air`
+# Refer to https://github.com/cosmtrek/air for detailed settings
+
+# Working directory
+root = "."
+
+# Subdirectory patterns to be watched
+tmp_dir = "tmp"
+bin_dir = "bin"
+
+[build]
+  cmd = "go build -o ./tmp/main ."
+  bin = "tmp/main"
+  full_bin = "tmp/main"
+
+[log]
+  level = "info"

@@ -1,0 +1,196 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/hominem-frontmatter-settings.schema.json",
+  "title": "Hominem Notes Frontmatter Settings",
+  "description": "Configuration schema for the hominem notes frontmatter CLI, covering schema definitions, defaults, generator/validator options, directory mappings, and logging preferences.",
+  "type": "object",
+  "required": ["version", "frontmatter"],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Configuration version for upgrade/migration purposes."
+    },
+    "frontmatter": {
+      "type": "object",
+      "required": ["schemas"],
+      "properties": {
+        "schemas": {
+          "type": "object",
+          "description": "Named schema definitions available for validation and migration.",
+          "additionalProperties": {
+            "$ref": "#/$defs/schemaDefinition"
+          },
+          "minProperties": 1
+        },
+        "directory_mapping": {
+          "type": "object",
+          "patternProperties": {
+            ".*": {
+              "type": "string",
+              "description": "Glob prefix or pattern that maps to a schema name."
+            }
+          },
+          "additionalProperties": false,
+          "description": "Maps repository directories to concrete schema names."
+        },
+        "defaults": {
+          "type": "object",
+          "properties": {
+            "format": {
+              "type": "string",
+              "enum": ["yaml", "json"],
+              "description": "Preferred frontmatter delimiter/format."
+            },
+            "generator_defaults": {
+              "$ref": "#/$defs/generatorDefaults"
+            },
+            "slug_collision": {
+              "$ref": "#/$defs/slugCollisionConfig"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Global defaults invoked when schemas omit specific settings."
+        }
+      },
+      "additionalProperties": false
+    },
+    "logging": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["debug", "info", "warn", "error"],
+          "default": "info",
+          "description": "CLI logging level."
+        },
+        "json": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable JSON-formatted logging."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "schemaDefinition": {
+      "type": ["object", "null"],
+      "properties": {
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Fields that must exist in the frontmatter."
+        },
+        "defaults": {
+          "type": ["object", "null"],
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Static default values inserted when fields are missing."
+        },
+        "generators": {
+          "type": ["object", "null"],
+          "additionalProperties": {
+            "$ref": "#/$defs/generatorConfig"
+          },
+          "description": "Field-specific generator definitions."
+        },
+        "validators": {
+          "type": ["object", "null"],
+          "additionalProperties": {
+            "$ref": "#/$defs/validatorConfig"
+          },
+          "description": "Validator chains per field."
+        }
+      },
+      "additionalProperties": false
+    },
+    "generatorConfig": {
+      "type": ["object", "null"],
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Registered generator name (uuid-v4, kebab-filename, etc.)."
+        },
+        "options": {
+          "type": ["object", "null"],
+          "description": "Generator-specific options.",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "validatorConfig": {
+      "type": ["object", "null"],
+      "properties": {
+        "allowed": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "string"
+          },
+          "description": "List of allowed values for enum-like validation."
+        },
+        "pattern": {
+          "type": ["string", "null"],
+          "description": "Regex pattern the value must match."
+        },
+        "minLength": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "maxLength": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "custom": {
+          "type": ["string", "null"],
+          "description": "Identifier for custom validator hook (future extension)."
+        },
+        "collision": {
+          "$ref": "#/$defs/slugCollisionConfig"
+        },
+        "options": {
+          "type": ["object", "null"],
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "generatorDefaults": {
+      "type": ["object", "null"],
+      "properties": {
+        "timestamp": {
+          "type": ["string", "null"],
+          "description": "Default timestamp generator (e.g., utc-now)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "slugCollisionConfig": {
+      "type": ["object", "null"],
+      "properties": {
+        "policy": {
+          "type": ["string", "null"],
+          "enum": ["fail", "increment", "append-uid"],
+          "description": "How to resolve slug collisions."
+        },
+        "maxAttempts": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "description": "Maximum attempts when incrementing slugs."
+        },
+        "scope": {
+          "type": ["string", "null"],
+          "enum": ["directory", "project", "global"],
+          "description": "Scope used when detecting slug collisions."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
