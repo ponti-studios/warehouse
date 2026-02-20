@@ -18,16 +18,24 @@ var (
 )
 
 // generic list item wrappers -------------------------------------------------
-type txItem struct{ tx services.FinanceTransactionDTO }
+type txItem struct {
+	tx services.FinanceTransactionDTO
+}
 
-func (i txItem) Title() string       { return fmt.Sprintf("%s — %s", i.tx.Date, i.tx.Payee) }
-func (i txItem) Description() string { return fmt.Sprintf("%s · %s · %.2f", i.tx.Category, i.tx.Account, i.tx.Amount) }
-func (i txItem) FilterValue() string { return strings.Join([]string{i.tx.Payee, i.tx.Category, i.tx.Account}, " ") }
+func (i txItem) Title() string { return fmt.Sprintf("%s — %s", i.tx.Date, i.tx.Payee) }
+func (i txItem) Description() string {
+	return fmt.Sprintf("%s · %s · %.2f", i.tx.Category, i.tx.Account, i.tx.Amount)
+}
+func (i txItem) FilterValue() string {
+	return strings.Join([]string{i.tx.Payee, i.tx.Category, i.tx.Account}, " ")
+}
 
 type accItem struct{ a services.FinanceAccountDTO }
 
-func (i accItem) Title() string       { return i.a.Name }
-func (i accItem) Description() string { return fmt.Sprintf("%s · %.2f %s", i.a.Type, i.a.Balance, i.a.Currency) }
+func (i accItem) Title() string { return i.a.Name }
+func (i accItem) Description() string {
+	return fmt.Sprintf("%s · %.2f %s", i.a.Type, i.a.Balance, i.a.Currency)
+}
 func (i accItem) FilterValue() string { return strings.Join([]string{i.a.Name, i.a.Type}, " ") }
 
 type catItem struct{ c services.FinanceCategoryDTO }
@@ -37,7 +45,10 @@ func (i catItem) Description() string { return i.c.Domain }
 func (i catItem) FilterValue() string { return strings.Join([]string{i.c.Name, i.c.Domain}, " ") }
 
 // transactions list TUI ------------------------------------------------------
-type transactionsModel struct{ l list.Model; txs []services.FinanceTransactionDTO }
+type transactionsModel struct {
+	l   list.Model
+	txs []services.FinanceTransactionDTO
+}
 
 func (m transactionsModel) Init() tea.Cmd { return nil }
 
@@ -92,7 +103,10 @@ func runTransactionsTUI(txs []services.FinanceTransactionDTO) error {
 }
 
 // accounts list TUI ----------------------------------------------------------
-type accountsModel struct{ l list.Model; accs []services.FinanceAccountDTO }
+type accountsModel struct {
+	l    list.Model
+	accs []services.FinanceAccountDTO
+}
 
 func (m accountsModel) Init() tea.Cmd { return nil }
 
@@ -146,7 +160,10 @@ func runAccountsTUI(accs []services.FinanceAccountDTO) error {
 }
 
 // categories list TUI -------------------------------------------------------
-type categoriesModel struct{ l list.Model; cats []services.FinanceCategoryDTO }
+type categoriesModel struct {
+	l    list.Model
+	cats []services.FinanceCategoryDTO
+}
 
 func (m categoriesModel) Init() tea.Cmd { return nil }
 
