@@ -29,12 +29,13 @@ build:
 
 # Build server only
 build-server:
-	$(GOBUILD) -o $(BINDIR)/server ./cmd/cli
+	$(GOBUILD) -o $(BINDIR)/server ./cmd/server
 
 # Clean the project
 clean:
 	$(GOCLEAN)
 	rm -f $(BINDIR)/$(BINARY_NAME)
+	rm -f $(BINDIR)/server
 
 # Run tests
 test:

@@ -2,9 +2,10 @@ package health
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"os"
+
+	"github.com/spf13/cobra"
 
 	"gogogo/internal/application/health"
 	"gogogo/internal/infrastructure/config"
@@ -120,30 +121,29 @@ func (c *ImportCommand) Execute(ctx context.Context) error {
 	return nil
 }
 
-func HandleHealthImport() int {
-	fs := flag.NewFlagSet("health-import", flag.ExitOnError)
-	dbPath := fs.String("db", "", "Path to SQLite database")
-	sourceDir := fs.String("source", "", "Source directory containing health data files")
-	dryRun := fs.Bool("dry-run", false, "Validate without importing")
-	force := fs.Bool("force", false, "Skip duplicate checking")
-	sourceType := fs.String("source-type", "all", "Source type: withings, spo2, mfp, weight, sleep, bp, hr, or all")
+func Command() *cobra.Command {
+	var dbPath, sourceDir, sourceType string
+	var dryRun, force bool
 
-	fs.Parse(os.Args[2:])
-
-	cmd := ImportCommand{
-		DBPath:    *dbPath,
-		SourceDir: *sourceDir,
-		DryRun:    *dryRun,
-		Force:     *force,
-		Source:    *sourceType,
+	cmd := &cobra.Command{
+		Use:   "health",
+		Short: "Import health data",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return (&ImportCommand{
+				DBPath:    dbPath,
+				SourceDir: sourceDir,
+				DryRun:    dryRun,
+				Force:     force,
+				Source:    sourceType,
+			}).Execute(cmd.Context())
+		},
 	}
 
-	ctx := context.Background()
+	cmd.Flags().StringVar(&dbPath, "db", "", "Path to SQLite database")
+	cmd.Flags().StringVar(&sourceDir, "source", "", "Source directory containing health data files")
+	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Validate without importing")
+	cmd.Flags().BoolVar(&force, "force", false, "Skip duplicate checking")
+	cmd.Flags().StringVar(&sourceType, "source-type", "all", "Source type: withings, spo2, mfp, weight, sleep, bp, hr, or all")
 
-	if err := cmd.Execute(ctx); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		return 1
-	}
-
-	return 0
+	return cmd
 }

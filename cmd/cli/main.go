@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"github.com/charmbracelet/fang"
@@ -11,11 +10,14 @@ import (
 	"gogogo/cmd/cli/commands/browser"
 	"gogogo/cmd/cli/commands/finance"
 	"gogogo/cmd/cli/commands/flatten"
+	"gogogo/cmd/cli/commands/importcmd/amazon"
+	"gogogo/cmd/cli/commands/importcmd/apple"
+	"gogogo/cmd/cli/commands/importcmd/health"
 	"gogogo/cmd/cli/commands/importcmd/music"
-	"gogogo/cmd/cli/commands/notes"
-	"gogogo/cmd/cli/commands/random"
+	"gogogo/cmd/cli/commands/importcmd/openai"
+	"gogogo/cmd/cli/commands/importcmd/social"
+	"gogogo/cmd/cli/commands/importcmd/typingmind"
 	"gogogo/cmd/cli/commands/server"
-	"gogogo/cmd/cli/commands/typingmind"
 )
 
 func main() {
@@ -26,10 +28,7 @@ func main() {
 
 	rootCmd.AddCommand(browserCmd())
 	rootCmd.AddCommand(flattenCmd())
-	rootCmd.AddCommand(typingmindCmd())
 	rootCmd.AddCommand(finance.Command())
-	rootCmd.AddCommand(notesCmd())
-	rootCmd.AddCommand(randomCmd())
 	rootCmd.AddCommand(serverCmd())
 	rootCmd.AddCommand(importCmd())
 
@@ -42,11 +41,8 @@ func browserCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "browser",
 		Short: "Browser automation tools",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := browser.Run(); err != nil {
-				fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err)
-				os.Exit(1)
-			}
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return browser.Run()
 		},
 	}
 }
@@ -55,50 +51,8 @@ func flattenCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "flatten",
 		Short: "Flatten directory structure",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := flatten.Run(); err != nil {
-				fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err)
-				os.Exit(1)
-			}
-		},
-	}
-}
-
-func typingmindCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "typingmind",
-		Short: "Convert TypingMind chat data",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := typingmind.Run(); err != nil {
-				fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err)
-				os.Exit(1)
-			}
-		},
-	}
-}
-
-func notesCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "notes",
-		Short: "Parse markdown files for notes",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := notes.Run(); err != nil {
-				fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err)
-				os.Exit(1)
-			}
-		},
-	}
-}
-
-func randomCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "random",
-		Short: "Go example code snippets",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := random.Run(); err != nil {
-				fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err)
-				os.Exit(1)
-			}
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return flatten.Run()
 		},
 	}
 }
@@ -107,11 +61,8 @@ func serverCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "server",
 		Short: "Start REST API server",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := server.Run(); err != nil {
-				fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err)
-				os.Exit(1)
-			}
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return server.Run()
 		},
 	}
 }
@@ -122,44 +73,15 @@ func importCmd() *cobra.Command {
 		Short: "Import data from various sources",
 	}
 
-	cmd.AddCommand(importAmazonCmd())
-	cmd.AddCommand(importAppleCmd())
-	cmd.AddCommand(importHealthCmd())
+	cmd.AddCommand(amazon.Command())
+	cmd.AddCommand(apple.Command())
+	cmd.AddCommand(health.Command())
 	cmd.AddCommand(importMusicCmd())
-	cmd.AddCommand(importTrackingCmd())
-	cmd.AddCommand(importSocialCmd())
+	cmd.AddCommand(social.Command())
+	cmd.AddCommand(typingmind.Command())
+	cmd.AddCommand(openai.Command())
 
 	return cmd
-}
-
-func importAmazonCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "amazon",
-		Short: "Import Amazon orders",
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Usage: gogogo import amazon <args>")
-		},
-	}
-}
-
-func importAppleCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "apple",
-		Short: "Import Apple receipts",
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Usage: gogogo import apple <args>")
-		},
-	}
-}
-
-func importHealthCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "health",
-		Short: "Import health data",
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Usage: gogogo import health <args>")
-		},
-	}
 }
 
 func importMusicCmd() *cobra.Command {
@@ -183,7 +105,7 @@ func importSpotifyCmd() *cobra.Command {
 		Short: "Import Spotify data",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return music.HandleSpotifyImport(
-				context.Background(),
+				cmd.Context(),
 				db,
 				source,
 				dryRun,
@@ -209,7 +131,7 @@ func importAppleMusicCmd() *cobra.Command {
 		Short: "Import Apple Music data",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return music.HandleAppleMusicImport(
-				context.Background(),
+				cmd.Context(),
 				db,
 				source,
 				dryRun,
@@ -226,22 +148,3 @@ func importAppleMusicCmd() *cobra.Command {
 	return cmd
 }
 
-func importTrackingCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "tracking",
-		Short: "Import tracking data",
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Usage: gogogo import tracking <args>")
-		},
-	}
-}
-
-func importSocialCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "social",
-		Short: "Import social media data",
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Usage: gogogo import social <args>")
-		},
-	}
-}

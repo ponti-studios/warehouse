@@ -2,9 +2,10 @@ package apple
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"os"
+
+	"github.com/spf13/cobra"
 
 	"gogogo/internal/application/apple"
 	"gogogo/internal/infrastructure/config"
@@ -54,28 +55,27 @@ func (c *ImportCommand) Execute(ctx context.Context) error {
 	return nil
 }
 
-func HandleAppleImport() int {
-	fs := flag.NewFlagSet("apple-import", flag.ExitOnError)
-	dbPath := fs.String("db", "", "Path to SQLite database")
-	sourceDir := fs.String("source", "", "Source directory containing Apple data")
-	dryRun := fs.Bool("dry-run", false, "Validate without importing")
-	force := fs.Bool("force", false, "Skip duplicate checking")
+func Command() *cobra.Command {
+	var dbPath, sourceDir string
+	var dryRun, force bool
 
-	fs.Parse(os.Args[2:])
-
-	cmd := ImportCommand{
-		DBPath:    *dbPath,
-		SourceDir: *sourceDir,
-		DryRun:    *dryRun,
-		Force:     *force,
+	cmd := &cobra.Command{
+		Use:   "apple",
+		Short: "Import Apple receipts",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return (&ImportCommand{
+				DBPath:    dbPath,
+				SourceDir: sourceDir,
+				DryRun:    dryRun,
+				Force:     force,
+			}).Execute(cmd.Context())
+		},
 	}
 
-	ctx := context.Background()
+	cmd.Flags().StringVar(&dbPath, "db", "", "Path to SQLite database")
+	cmd.Flags().StringVar(&sourceDir, "source", "", "Source directory containing Apple data")
+	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Validate without importing")
+	cmd.Flags().BoolVar(&force, "force", false, "Skip duplicate checking")
 
-	if err := cmd.Execute(ctx); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		return 1
-	}
-
-	return 0
+	return cmd
 }
