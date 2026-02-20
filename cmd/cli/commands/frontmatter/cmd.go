@@ -55,9 +55,9 @@ type commonOptions struct {
 
 func Command() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:          "frontmatter",
-		Short:        "Validate and migrate markdown frontmatter",
-		SilenceUsage: true,
+		Use:           "frontmatter",
+		Short:         "Validate and migrate markdown frontmatter",
+		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
 
