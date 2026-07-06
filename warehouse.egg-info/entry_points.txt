@@ -1,2 +1,0 @@
-[console_scripts]
-warehouse = warehouse.cli.main:main
