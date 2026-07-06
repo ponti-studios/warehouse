@@ -119,9 +119,7 @@ class SpotifyClient:
 
         raise APIError("Max retries exceeded for Spotify API request")
 
-    def search_track(
-        self, artist: str, track_name: str, limit: int = 5
-    ) -> dict | None:
+    def search_track(self, artist: str, track_name: str, limit: int = 5) -> dict | None:
         query = f"artist:{artist} track:{track_name}"
         results = self._request(
             "GET",

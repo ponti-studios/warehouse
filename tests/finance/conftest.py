@@ -184,9 +184,7 @@ def scratch_db(tmp_path: Path) -> str:
         """
     )
     conn.execute("INSERT INTO finance_categories (name, parent_id) VALUES ('Food & Drink', NULL)")
-    conn.execute(
-        "INSERT INTO finance_categories (name, parent_id) VALUES ('Groceries', 1)"
-    )
+    conn.execute("INSERT INTO finance_categories (name, parent_id) VALUES ('Groceries', 1)")
     conn.execute("INSERT INTO finance_categories (name, parent_id) VALUES ('Uncategorized', NULL)")
     conn.commit()
     conn.close()

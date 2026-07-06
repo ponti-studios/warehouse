@@ -152,9 +152,7 @@ class ImportReport:
                 "Unmapped accounts (row lands with account_id=NULL, "
                 "add an alias or a new finance_accounts row):"
             )
-            for raw_name, count in sorted(
-                self.unmapped_accounts.items(), key=lambda kv: -kv[1]
-            ):
+            for raw_name, count in sorted(self.unmapped_accounts.items(), key=lambda kv: -kv[1]):
                 lines.append(f"  {count:>6,}  {raw_name!r}")
         if self.unmapped_categories:
             lines.append("")

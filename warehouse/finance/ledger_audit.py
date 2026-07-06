@@ -105,9 +105,7 @@ class LedgerAuditReport:
     @property
     def needs_review_count(self) -> int:
         return sum(
-            row.count
-            for row in self.summaries
-            if row.severity in {"error", "warn", "review"}
+            row.count for row in self.summaries if row.severity in {"error", "warn", "review"}
         )
 
 
@@ -545,11 +543,7 @@ def run_ledger_audit(conn: sqlite3.Connection, *, window_days: int = 5) -> Ledge
             "matched_transfer_rows",
             transfer_counts["matched_pair"],
             sum(
-                (
-                    abs(row.amount)
-                    for row in transfers
-                    if row.classification == "matched_pair"
-                ),
+                (abs(row.amount) for row in transfers if row.classification == "matched_pair"),
                 Decimal("0"),
             ),
             "Internal-transfer rows with one clean opposite-sign cross-account match.",
@@ -615,9 +609,7 @@ def render_markdown_report(report: LedgerAuditReport, *, include_csv_listing: bo
         "| --- | --- | ---: | ---: |",
     ]
     for s in report.summaries:
-        lines.append(
-            f"| {s.severity} | {s.category} | {s.count:,} | {_money(s.dollar_impact)} |"
-        )
+        lines.append(f"| {s.severity} | {s.category} | {s.count:,} | {_money(s.dollar_impact)} |")
 
     lines.extend(
         [
@@ -630,8 +622,7 @@ def render_markdown_report(report: LedgerAuditReport, *, include_csv_listing: bo
         for d in report.exact_duplicates:
             ids = ", ".join(str(value) for value in d.transaction_ids)
             lines.append(
-                f"- {d.account_name} {d.posted_on} {d.amount:,.2f} "
-                f"`{d.normalized_name}` ids={ids}"
+                f"- {d.account_name} {d.posted_on} {d.amount:,.2f} `{d.normalized_name}` ids={ids}"
             )
     else:
         lines.append("- None")

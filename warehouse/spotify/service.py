@@ -109,9 +109,7 @@ class SpotifyEnrichmentService:
         if track_row:
             self.save_enrichment(track_row[0], track_data, genres)
 
-    def save_enrichment(
-        self, track_db_id: int, track_data: dict, genres: list[str]
-    ) -> None:
+    def save_enrichment(self, track_db_id: int, track_data: dict, genres: list[str]) -> None:
         spotify_id = track_data.get("spotify_id")
         artist_ids = track_data.get("artist_ids", [])
         artist_names = [name.strip() for name in track_data.get("artist_name", "").split(",")]

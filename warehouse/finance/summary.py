@@ -50,9 +50,7 @@ def monthly_summaries(
         (f"-{months}",),
     ).fetchall()
 
-    grouped: dict[str, dict[str, Decimal]] = defaultdict(
-        lambda: defaultdict(lambda: Decimal("0"))
-    )
+    grouped: dict[str, dict[str, Decimal]] = defaultdict(lambda: defaultdict(lambda: Decimal("0")))
     counts: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
     income: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))
     expenses: dict[str, Decimal] = defaultdict(lambda: Decimal("0"))

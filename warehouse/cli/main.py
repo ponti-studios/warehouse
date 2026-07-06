@@ -10,7 +10,7 @@ import typer
 from rich.console import Console
 
 from warehouse import __version__
-from warehouse.cli.commands import career, finance, spotify
+from warehouse.cli.commands import calendar, career, finance, spotify
 from warehouse.core import AppSettings
 
 app = typer.Typer(
@@ -24,6 +24,7 @@ app.add_typer(finance.app, name="finance")
 app.add_typer(career.app, name="career")
 
 app.add_typer(spotify.app, name="spotify")
+app.add_typer(calendar.app, name="calendar")
 
 
 @app.command()
@@ -45,15 +46,15 @@ def init() -> None:
         console.print("Use [bold]warehouse doctor[/bold] to verify it.")
         raise typer.Exit(0)
 
-    schema = resources.files("warehouse.migrations").joinpath(
-        "00001_initial_schema.sql"
-    ).read_text()
+    schema = (
+        resources.files("warehouse.migrations").joinpath("00001_initial_schema.sql").read_text()
+    )
 
     # Extract just the Up section
     import re
+
     match = re.search(
-        r"-- \+goose StatementBegin\n(.*?)\n-- \+goose StatementEnd",
-        schema, re.DOTALL
+        r"-- \+goose StatementBegin\n(.*?)\n-- \+goose StatementEnd", schema, re.DOTALL
     )
     if not match:
         console.print("[red]Could not parse schema migration.[/red]")
@@ -68,18 +69,21 @@ def init() -> None:
     finally:
         conn.close()
 
-    count = sqlite3.connect(str(db_path)).execute(
-        "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence'"
-    ).fetchone()[0]
+    count = (
+        sqlite3.connect(str(db_path))
+        .execute(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence'"
+        )
+        .fetchone()[0]
+    )
 
     console.print(f"[green]✓[/green] Initialized [bold]{db_path}[/bold] with {count} tables.")
     console.print()
     console.print("Next steps:")
     console.print(
-        "  [bold]warehouse finance accounts add[/bold]"
-        ' "Checking" --institution "My Bank"'
+        '  [bold]warehouse finance accounts add[/bold] "Checking" --institution "My Bank"'
     )
-    console.print("  [bold]warehouse finance categories add[/bold] \"Groceries\"")
+    console.print('  [bold]warehouse finance categories add[/bold] "Groceries"')
     console.print("  [bold]warehouse finance import[/bold] transactions.csv")
 
 

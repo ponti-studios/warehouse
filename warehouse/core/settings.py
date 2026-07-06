@@ -100,8 +100,7 @@ class AppSettings:
 
         if not self.spotify_client_id or not self.spotify_client_secret:
             raise ConfigError(
-                "Spotify credentials not set. Provide SPOTIFY_CLIENT_ID and "
-                "SPOTIFY_CLIENT_SECRET."
+                "Spotify credentials not set. Provide SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET."
             )
 
     def ensure_database(self) -> None:
@@ -110,6 +109,5 @@ class AppSettings:
         path = Path(self.database_path)
         if not path.exists():
             raise ConfigError(
-                f"Database not found at {path}.\n"
-                f"Run [bold]warehouse init[/bold] to create it."
+                f"Database not found at {path}.\nRun [bold]warehouse init[/bold] to create it."
             )

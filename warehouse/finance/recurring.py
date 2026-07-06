@@ -90,8 +90,7 @@ def find_recurring(
 
         # At least half the intervals should be close to the median
         close_count = sum(
-            1 for i in intervals
-            if abs(i - median_interval) <= max(5, median_interval * 0.20)
+            1 for i in intervals if abs(i - median_interval) <= max(5, median_interval * 0.20)
         )
         if close_count < len(intervals) * 0.5:
             continue

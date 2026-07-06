@@ -5,9 +5,7 @@ from decimal import Decimal
 from warehouse.finance.networth import compute_balances
 
 
-def _insert_txn(
-    conn: sqlite3.Connection, *, txn_date: str, amount: str, excluded: int = 0
-) -> None:
+def _insert_txn(conn: sqlite3.Connection, *, txn_date: str, amount: str, excluded: int = 0) -> None:
     seq = conn.execute("SELECT COUNT(*) FROM finance_transactions").fetchone()[0] + 1
     conn.execute(
         """

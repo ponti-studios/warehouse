@@ -64,8 +64,7 @@ class CategoryResolver:
             """
         ).fetchall()
         return [
-            Category(id=row[0], name=row[1], parent_id=row[2], parent_name=row[3])
-            for row in rows
+            Category(id=row[0], name=row[1], parent_id=row[2], parent_name=row[3]) for row in rows
         ]
 
     def add_category(self, name: str, parent_name: str = "") -> int:

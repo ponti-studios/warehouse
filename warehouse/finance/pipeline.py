@@ -31,9 +31,7 @@ def _resolve_connector(
     column_map: dict[str, str] | None,
 ) -> Connector:
     if connector_name:
-        return build_connector(
-            connector_name, resolver, category_resolver, column_map=column_map
-        )
+        return build_connector(connector_name, resolver, category_resolver, column_map=column_map)
     detected = detect_connector(path, resolver, category_resolver)
     if detected is None:
         raise ValueError(

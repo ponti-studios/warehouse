@@ -24,8 +24,10 @@ def test_import_reports_reads_validates_rejects_and_unmapped(
     scratch_db: str, generic_fixture_path: Path
 ) -> None:
     report = import_file(
-        scratch_db, str(generic_fixture_path),
-        connector_name="generic", column_map=_COLUMN_MAP,
+        scratch_db,
+        str(generic_fixture_path),
+        connector_name="generic",
+        column_map=_COLUMN_MAP,
     )
 
     assert report.connector == "generic"
@@ -37,18 +39,20 @@ def test_import_reports_reads_validates_rejects_and_unmapped(
     assert report.rows_duplicate == 0
 
 
-def test_import_is_idempotent_on_rerun(
-    scratch_db: str, generic_fixture_path: Path
-) -> None:
+def test_import_is_idempotent_on_rerun(scratch_db: str, generic_fixture_path: Path) -> None:
     first = import_file(
-        scratch_db, str(generic_fixture_path),
-        connector_name="generic", column_map=_COLUMN_MAP,
+        scratch_db,
+        str(generic_fixture_path),
+        connector_name="generic",
+        column_map=_COLUMN_MAP,
     )
     assert first.rows_merged == 3
 
     second = import_file(
-        scratch_db, str(generic_fixture_path),
-        connector_name="generic", column_map=_COLUMN_MAP,
+        scratch_db,
+        str(generic_fixture_path),
+        connector_name="generic",
+        column_map=_COLUMN_MAP,
     )
     assert second.rows_merged == 0
     assert second.rows_duplicate == 3
@@ -63,8 +67,10 @@ def test_legitimate_repeated_transactions_are_not_collapsed(
     scratch_db: str, generic_fixture_path: Path
 ) -> None:
     import_file(
-        scratch_db, str(generic_fixture_path),
-        connector_name="generic", column_map=_COLUMN_MAP,
+        scratch_db,
+        str(generic_fixture_path),
+        connector_name="generic",
+        column_map=_COLUMN_MAP,
     )
 
     conn = sqlite3.connect(scratch_db)
@@ -79,8 +85,10 @@ def test_unmapped_account_row_does_not_merge_to_strict_ledger(
     scratch_db: str, generic_fixture_path: Path
 ) -> None:
     import_file(
-        scratch_db, str(generic_fixture_path),
-        connector_name="generic", column_map=_COLUMN_MAP,
+        scratch_db,
+        str(generic_fixture_path),
+        connector_name="generic",
+        column_map=_COLUMN_MAP,
     )
 
     conn = sqlite3.connect(scratch_db)
@@ -95,8 +103,11 @@ def test_since_filters_out_rows_before_the_cutoff(
     scratch_db: str, generic_fixture_path: Path
 ) -> None:
     report = import_file(
-        scratch_db, str(generic_fixture_path),
-        connector_name="generic", column_map=_COLUMN_MAP, since="2024-01-07",
+        scratch_db,
+        str(generic_fixture_path),
+        connector_name="generic",
+        column_map=_COLUMN_MAP,
+        since="2024-01-07",
     )
 
     assert report.rows_read == 5
@@ -105,19 +116,18 @@ def test_since_filters_out_rows_before_the_cutoff(
     assert report.rows_merged == 0
 
     conn = sqlite3.connect(scratch_db)
-    names = {
-        row[0] for row in conn.execute("SELECT name FROM finance_transactions").fetchall()
-    }
+    names = {row[0] for row in conn.execute("SELECT name FROM finance_transactions").fetchall()}
     conn.close()
     assert names == set()
 
 
-def test_dry_run_writes_nothing(
-    scratch_db: str, generic_fixture_path: Path
-) -> None:
+def test_dry_run_writes_nothing(scratch_db: str, generic_fixture_path: Path) -> None:
     report = import_file(
-        scratch_db, str(generic_fixture_path),
-        connector_name="generic", column_map=_COLUMN_MAP, dry_run=True,
+        scratch_db,
+        str(generic_fixture_path),
+        connector_name="generic",
+        column_map=_COLUMN_MAP,
+        dry_run=True,
     )
     assert report.rows_merged == 3
     assert report.batch_id is None
@@ -128,12 +138,12 @@ def test_dry_run_writes_nothing(
     assert total == 0
 
 
-def test_import_writes_strict_columns(
-    scratch_db: str, generic_fixture_path: Path
-) -> None:
+def test_import_writes_strict_columns(scratch_db: str, generic_fixture_path: Path) -> None:
     import_file(
-        scratch_db, str(generic_fixture_path),
-        connector_name="generic", column_map=_COLUMN_MAP,
+        scratch_db,
+        str(generic_fixture_path),
+        connector_name="generic",
+        column_map=_COLUMN_MAP,
     )
 
     conn = sqlite3.connect(scratch_db)
@@ -155,24 +165,27 @@ def test_import_writes_no_legacy_transaction_columns(
     scratch_db: str, generic_fixture_path: Path
 ) -> None:
     import_file(
-        scratch_db, str(generic_fixture_path),
-        connector_name="generic", column_map=_COLUMN_MAP,
+        scratch_db,
+        str(generic_fixture_path),
+        connector_name="generic",
+        column_map=_COLUMN_MAP,
     )
 
     conn = sqlite3.connect(scratch_db)
-    columns = {
-        row[1] for row in conn.execute("PRAGMA table_info(finance_transactions)").fetchall()
-    }
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(finance_transactions)").fetchall()}
     conn.close()
 
-    assert not {
-        "date",
-        "amount",
-        "status",
-        "category",
-        "parent_category",
-        "tags",
-        "type",
-        "account",
-        "dedupe_key",
-    } & columns
+    assert (
+        not {
+            "date",
+            "amount",
+            "status",
+            "category",
+            "parent_category",
+            "tags",
+            "type",
+            "account",
+            "dedupe_key",
+        }
+        & columns
+    )
