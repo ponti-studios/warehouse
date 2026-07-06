@@ -1,175 +1,148 @@
-# voidline
+# warehouse
 
-CLI utilities and tools for finance, frontmatter, imports, flattening, and server operations.
+Canonical upstream for the `warehouse` personal data CLI.
+`/Users/charlesponti/Developer/toolbox` consumes this repo through an explicit
+sync workflow so the standalone warehouse can ship independently from the
+umbrella tools monorepo.
 
-## Build
+Personal data warehouse CLI — manage finances, career timeline, people graph,
+and music library enrichment from a single SQLite database.
+
+## Install
 
 ```bash
-make build
+uv pip install -e ".[dev]"
 ```
 
-## Run
+## Setup
 
-```bash
-./bin/voidline --help
+Warehouse reads its database path from `~/.hominem/config.yml`:
+
+```yaml
+# ~/.hominem/config.yml
+database_path: ~/.hominem/warehouse.db
 ```
 
-## Command Overview
-
-Current top-level commands:
-
-- `finance`
-- `frontmatter`
-- `import`
-- `flatten`
-- `server`
-
-### finance
-
-Finance and budget utilities.
+Create this file and initialize the database:
 
 ```bash
-./voidline finance --help
+mkdir -p ~/.hominem
+echo 'database_path: ~/.hominem/warehouse.db' > ~/.hominem/config.yml
+sqlite3 ~/.hominem/warehouse.db < migrations/00001_initial_schema.sql
 ```
 
-Budget subcommands:
-
-- init: Create a new budget interactively
-- show: Display current budget status
-- calendar: Show cash flow calendar
-- scenario: Test what-if scenarios
-- export: Export budget data
-
-Examples:
+For development or testing, set `WAREHOUSE_DATABASE_PATH` to override the
+config file:
 
 ```bash
-./voidline finance budget init
-./voidline finance budget show --view categories
-./voidline finance budget calendar --month 2026-02
-./voidline finance budget scenario --reduce-expense 'Dining:50'
-./voidline finance budget export --format yaml
+export WAREHOUSE_DATABASE_PATH=/tmp/test-warehouse.db
 ```
 
-Report and dashboard:
+## CLI
 
 ```bash
-./voidline finance report --db /path/to/db.sqlite --type transactions --format table
-./voidline finance dashboard --db /path/to/db.sqlite --format json
+# Finance: canonical ledger import, health checks, and net worth
+uv run warehouse finance import transactions.csv
+uv run warehouse finance doctor
+uv run warehouse finance net-worth
+uv run warehouse finance accounts list
+uv run warehouse finance accounts alias "Amex Gold" "American Express Gold"
+uv run warehouse finance categories list
+uv run warehouse finance reconcile add 12 2026-06-30 15234.22 \
+  --period-start-on 2026-06-01 \
+  --opening-balance 14990.10
+uv run warehouse finance reconcile check
+uv run warehouse finance analyze ledger-audit
+
+# Career timeline
+uv run warehouse career add "Acme Corp" "Senior Engineer" --start-date "Jan 2020" --current
+uv run warehouse career timeline
+
+# People graph
+uv run warehouse people add "Jane Smith"
+uv run warehouse people backfill-name-parts --dry-run
+uv run warehouse people normalize-phone-numbers --dry-run
+uv run warehouse people normalize-sort-names --dry-run
+
+# Spotify lookup and enrichment
+export SPOTIFY_CLIENT_ID=...
+export SPOTIFY_CLIENT_SECRET=...
+uv run warehouse spotify track-info --artist "Khruangbin" --track "Pelota"
+uv run warehouse spotify enrich --limit 100
 ```
 
-### frontmatter
+## Command Groups
 
-Validate, migrate, and manage markdown frontmatter.
+| Group | Description |
+|-------|-------------|
+| `version` | Show version information |
+| `finance` | Bank-grade ledger import, doctor, net worth, accounts, categories, reconciliation, audit |
+| `career` | Add positions and print a career timeline |
+| `people` | Add people, backfill name parts, normalize phones and sort names |
+| `spotify` | Track metadata lookup and music library enrichment (requires Spotify API credentials) |
 
-```bash
-./bin/voidline frontmatter --help
+### `finance`
+
+- `finance import` — import transactions from CSV (Copilot or generic)
+- `finance doctor` — run data-quality checks on the finance ledger
+- `finance net-worth` — compute account balances and net worth
+- `finance accounts list` `add` `alias` — manage account identities and labels
+- `finance categories list` `add` — manage spend categories
+- `finance reconcile add` `list` `check` — track statement-period balances
+- `finance analyze ledger-audit` — duplicate, transfer, and lifecycle audit
+
+### `career`
+
+- `career add` — add an employment or project position
+- `career timeline` — print a terminal table of employment and project history
+
+### `people`
+
+- `people add` — add a person (auto-parses name parts and sort name)
+- `people backfill-name-parts` — parse display names into first/middle/last
+- `people normalize-phone-numbers` — normalize phone numbers to E.164
+- `people normalize-sort-names` — normalize sort names (Last, First)
+
+### `spotify`
+
+- `spotify track-info` — fetch track metadata from the Spotify Web API
+- `spotify enrich` — enrich `music_tracks` with Spotify metadata
+
+## Database
+
+The `00001_initial_schema.sql` migration creates 175 tables covering finance,
+music, people, career, calendar, media, places, health, tasks, books, art,
+travel, and more. The `finance`, `people`, `career`, and `music_*` tables
+are actively managed by the CLI.
+
+## Configuration
+
+Warehouse reads from `~/.hominem/config.yml`:
+
+```yaml
+database_path: ~/.hominem/warehouse.db
 ```
 
-Core subcommands:
-
-- walk: List markdown files under a root
-- validate: Validate frontmatter against a schema
-- migrate: Apply schema-guided migration (dry-run by default)
-- slug detect: Detect slug collisions
-- slug resolve: Resolve slug collisions by policy
-
-Examples:
+Spotify credentials must be set as environment variables:
 
 ```bash
-./bin/voidline frontmatter walk --root ./testdata/frontmatter-cli/notebook --output json
-./bin/voidline frontmatter validate --root ./testdata/frontmatter-cli/notebook/personal --schema personal --output json
-./bin/voidline frontmatter migrate --root ./testdata/frontmatter-cli/notebook/personal --schema personal --strategy fill --output text
-./bin/voidline frontmatter migrate --root ./testdata/frontmatter-cli/notebook/personal --schema personal --write --backup --output text
-./bin/voidline frontmatter slug detect --root ./testdata/frontmatter-cli/notebook/personal/collision --scope directory --output json
-./bin/voidline frontmatter slug resolve --slug same-slug --policy increment --existing-slugs same-slug --existing-slugs same-slug-2 --output json
-```
-
-Exit code semantics:
-
-- `0`: success
-- `1`: domain validation/collision failure
-- `2`: runtime or usage failure
-
-### import
-
-Import data from multiple sources.
-
-```bash
-./voidline import --help
-```
-
-Available imports:
-
-- amazon
-- apple
-- health
-- music (spotify, apple)
-- social
-- typingmind
-- openai
-
-Examples:
-
-```bash
-./voidline import amazon --source /path/to/amazon --db /path/to/db.sqlite
-./voidline import health --source /path/to/health --source-type all
-./voidline import music spotify --source /path/to/spotify --db /path/to/db.sqlite
-./voidline import typingmind --source /path/to/typingmind.json
-./voidline import openai --source /path/to/openai-export
-```
-
-### flatten
-
-Flatten a directory structure into a single folder.
-
-```bash
-./voidline flatten --dir /path/to/dir --d --p
-```
-
-Flags:
-
-- --dir: Directory to flatten (required)
-- -d: Dry run
-- -p: Include parent directory name in filename
-
-### server
-
-Start the REST API server.
-
-```bash
-./voidline server
+export SPOTIFY_CLIENT_ID=your-client-id
+export SPOTIFY_CLIENT_SECRET=your-client-secret
 ```
 
 ## Development
 
 ```bash
-make tools
-make dev
+pytest
+ruff check warehouse tests
+mypy warehouse
 ```
 
-Recommended workflow:
+## Downstream Sync
 
-1. Install toolchain (lint, format, swagger, live reload):
-
-```bash
-make tools
-```
-
-2. Run live-reload server with auto Swagger regeneration:
+To sync this repo back into `toolbox`:
 
 ```bash
-make dev
-```
-
-3. Lint and format before commits:
-
-```bash
-make lint
-make fmt
-```
-
-4. Regenerate Swagger docs manually (if needed):
-
-```bash
-make swagger
+cd /Users/charlesponti/Developer/toolbox
+just sync-warehouse-from-voidline
 ```
