@@ -10,19 +10,19 @@ import typer
 from rich.console import Console
 
 from warehouse import __version__
-from warehouse.cli.commands import career, finance, people, spotify
+from warehouse.cli.commands import career, finance, spotify
 from warehouse.core import AppSettings
 
 app = typer.Typer(
     name="warehouse",
-    help="Personal data warehouse CLI — finance, career, people, and music enrichment.",
+    help="Personal data warehouse CLI — finance, career, and music enrichment.",
     no_args_is_help=True,
 )
 console = Console()
 
 app.add_typer(finance.app, name="finance")
 app.add_typer(career.app, name="career")
-app.add_typer(people.app, name="people")
+
 app.add_typer(spotify.app, name="spotify")
 
 
